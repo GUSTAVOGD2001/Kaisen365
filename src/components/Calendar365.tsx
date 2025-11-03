@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface DayStatus {
   date: string;
@@ -77,7 +78,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
 
       toast({
         title: newCompleted ? "¡Día completado!" : "Día desmarcado",
-        description: format(date, "d 'de' MMMM, yyyy", { locale: require("date-fns/locale/es") }),
+        description: format(date, "d 'de' MMMM, yyyy", { locale: es }),
       });
     } catch (error: any) {
       toast({
@@ -233,7 +234,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{format(date, "d 'de' MMMM, yyyy", { locale: require("date-fns/locale/es") })}</p>
+                      <p>{format(date, "d 'de' MMMM, yyyy", { locale: es })}</p>
                       <p className="text-xs text-muted-foreground">
                         {completed ? "Completado" : "No completado"}
                       </p>
