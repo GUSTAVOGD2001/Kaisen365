@@ -42,6 +42,10 @@ All colors MUST be HSL.
     --success: 142 76% 45%;
     --success-foreground: 0 0% 4%;
 
+    /* Goal indicator for target dates */
+    --goal: 45 93% 47%;
+    --goal-foreground: 0 0% 4%;
+
     /* Hover states */
     --hover: 0 0% 12%;
   }

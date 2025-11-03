@@ -32,6 +32,23 @@ const Auth = () => {
     });
   }, [navigate]);
 
+  const motivationalPhrases = [
+    "Bienvenido de vuelta. La disciplina no negocia.",
+    "Un día más, un día menos.",
+    "No excuses. Execute.",
+    "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+    "Hoy es el día perfecto para ser mejor que ayer.",
+    "La consistencia vence al talento.",
+    "No cuentes los días, haz que los días cuenten.",
+    "Tu único límite eres tú mismo.",
+    "El progreso, no la perfección.",
+    "Hazlo hoy, tu yo del futuro te lo agradecerá.",
+  ];
+
+  const getRandomPhrase = () => {
+    return motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -46,7 +63,7 @@ const Auth = () => {
 
       toast({
         title: "¡Bienvenido de nuevo!",
-        description: "Has iniciado sesión correctamente.",
+        description: getRandomPhrase(),
       });
       
       navigate("/app");

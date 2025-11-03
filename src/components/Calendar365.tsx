@@ -15,6 +15,14 @@ interface DayStatus {
   note: string | null;
 }
 
+interface Goal {
+  id: number;
+  title: string;
+  description: string | null;
+  target_date: string | null;
+  status: string;
+}
+
 interface Calendar365Props {
   userId: string;
 }
@@ -23,12 +31,13 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dayStatuses, setDayStatuses] = useState<DayStatus[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [viewFilter, setViewFilter] = useState<"all" | "current" | "remaining">("all");
   const [selectedDayDialog, setSelectedDayDialog] = useState(false);
-  const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: Date; note: string | null; completed: boolean } | null>(null);
+  const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: Date; note: string | null; completed: boolean; goals: Goal[] } | null>(null);
   const { toast } = useToast();
 
   const yearStart = startOfYear(new Date(selectedYear, 0, 1));
@@ -37,6 +46,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
 
   useEffect(() => {
     fetchDayStatuses();
+    fetchGoals();
   }, [selectedYear, userId]);
 
   const fetchDayStatuses = async () => {
@@ -59,6 +69,26 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("target_date", format(yearStart, "yyyy-MM-dd"))
+        .lte("target_date", format(yearEnd, "yyyy-MM-dd"));
+
+      if (error) throw error;
+      setGoals((data || []) as Goal[]);
+    } catch (error: any) {
+      toast({
+        title: "Error al cargar las metas",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -151,6 +181,11 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     return dayStatuses.find((s) => s.date === dateStr)?.note;
   };
 
+  const getDayGoals = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return goals.filter((g) => g.target_date === dateStr);
+  };
+
   const getMonthDays = (monthDate: Date) => {
     const start = startOfMonth(monthDate);
     const end = endOfMonth(monthDate);
@@ -193,11 +228,13 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const handleDayClick = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const dayData = dayStatuses.find((s) => s.date === dateStr);
+    const dayGoals = getDayGoals(date);
     
     setSelectedDayInfo({
       date,
       note: dayData?.note || null,
       completed: dayData?.completed || false,
+      goals: dayGoals,
     });
     setSelectedDayDialog(true);
   };
@@ -285,6 +322,8 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                       const today = isToday(date);
                       const isPast = isBefore(startOfDay(date), startOfDay(new Date())) && !today;
                       const dayNote = getDayNote(date);
+                      const dayGoals = getDayGoals(date);
+                      const hasGoal = dayGoals.length > 0;
                       const dayNum = format(date, "d");
 
                       // Determinar color de fondo
@@ -304,7 +343,8 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                             w-7 h-7 flex items-center justify-center text-[10px] rounded-full
                             ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
-                            ${dayNote ? "relative" : ""}
+                            ${hasGoal ? "ring-2 ring-goal ring-offset-1 ring-offset-background" : ""}
+                            ${dayNote || hasGoal ? "relative" : ""}
                             transition-all hover:opacity-80 hover:scale-110 cursor-pointer
                           `}
                           title={format(date, "dd/MM/yyyy")}
@@ -312,6 +352,9 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                           {dayNum}
                           {dayNote && (
                             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-primary rounded-full"></span>
+                          )}
+                          {hasGoal && (
+                            <span className="absolute top-0 left-0 w-1.5 h-1.5 bg-goal rounded-full"></span>
                           )}
                         </button>
                       );
@@ -365,7 +408,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
               {selectedDayInfo?.completed ? "✓ Día completado" : "✗ Día no completado"}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             {selectedDayInfo?.note ? (
               <div className="space-y-2">
                 <Label>Nota del día:</Label>
@@ -375,6 +418,26 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No hay notas para este día.</p>
+            )}
+            
+            {selectedDayInfo?.goals && selectedDayInfo.goals.length > 0 && (
+              <div className="space-y-2">
+                <Label>Metas para este día:</Label>
+                <div className="space-y-2">
+                  {selectedDayInfo.goals.map((goal) => (
+                    <div key={goal.id} className="p-3 bg-goal/10 border border-goal rounded-lg">
+                      <p className="font-semibold text-sm">{goal.title}</p>
+                      {goal.description && (
+                        <p className="text-xs text-muted-foreground mt-1">{goal.description}</p>
+                      )}
+                      <p className="text-xs mt-1 text-goal-foreground">Estado: {
+                        goal.status === "Completed" ? "Completada" : 
+                        goal.status === "In Progress" ? "En Progreso" : "Pendiente"
+                      }</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           <DialogFooter>
