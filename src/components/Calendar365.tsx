@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay, startOfMonth, endOfMonth, eachMonthOfInterval, isToday } from "date-fns";
+import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay, startOfMonth, endOfMonth, eachMonthOfInterval, isToday, isBefore, startOfDay } from "date-fns";
 
 interface DayStatus {
   date: string;
@@ -229,15 +229,25 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                     {monthDays.map((date) => {
                       const completed = isDayCompleted(date);
                       const today = isToday(date);
+                      const isPast = isBefore(startOfDay(date), startOfDay(new Date())) && !today;
                       const dayNote = getDayNote(date);
                       const dayNum = format(date, "d");
+
+                      // Determinar color de fondo
+                      let bgColor = "bg-muted text-muted-foreground"; // Días futuros o sin completar (presente)
+                      
+                      if (completed) {
+                        bgColor = "bg-success text-success-foreground font-semibold"; // Días completados
+                      } else if (isPast) {
+                        bgColor = "bg-destructive text-destructive-foreground font-semibold"; // Días pasados no completados
+                      }
 
                       return (
                         <div
                           key={date.toISOString()}
                           className={`
                             aspect-square flex items-center justify-center text-xs rounded
-                            ${completed ? "bg-success text-success-foreground font-semibold" : "bg-muted text-muted-foreground"}
+                            ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
                             ${dayNote ? "relative" : ""}
                             transition-all
