@@ -26,6 +26,9 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [viewFilter, setViewFilter] = useState<"all" | "current" | "remaining">("all");
+  const [selectedDayDialog, setSelectedDayDialog] = useState(false);
+  const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: Date; note: string | null; completed: boolean } | null>(null);
   const { toast } = useToast();
 
   const yearStart = startOfYear(new Date(selectedYear, 0, 1));
@@ -165,36 +168,87 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const todayStatus = dayStatuses.find((s) => s.date === format(new Date(), "yyyy-MM-dd"));
   const isTodayCompleted = todayStatus?.completed || false;
 
+  // Calcular días hasta fin de año
+  const today = new Date();
+  const endOfYearDate = endOfYear(today);
+  const daysUntilNewYear = Math.ceil((endOfYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  // Filtrar meses según la selección
+  const getFilteredMonths = () => {
+    const currentMonth = new Date().getMonth();
+    
+    switch (viewFilter) {
+      case "current":
+        return allMonths.filter(m => m.getMonth() === currentMonth);
+      case "remaining":
+        return allMonths.filter(m => m.getMonth() >= currentMonth);
+      case "all":
+      default:
+        return allMonths;
+    }
+  };
+
+  const filteredMonths = getFilteredMonths();
+
+  const handleDayClick = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const dayData = dayStatuses.find((s) => s.date === dateStr);
+    
+    setSelectedDayInfo({
+      date,
+      note: dayData?.note || null,
+      completed: dayData?.completed || false,
+    });
+    setSelectedDayDialog(true);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle>Calendario de 365 Días</CardTitle>
-          <div className="flex items-center gap-4">
-            <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <CardTitle className="mb-2">Calendario de 365 Días</CardTitle>
+              <div className="text-2xl font-bold text-primary">
+                ⏳ {daysUntilNewYear} días hasta el año nuevo
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Select value={viewFilter} onValueChange={(v: any) => setViewFilter(v)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todo el año</SelectItem>
+                  <SelectItem value="current">Mes actual</SelectItem>
+                  <SelectItem value="remaining">Meses restantes</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-6 text-sm text-muted-foreground mt-4">
-          <span>
-            <span className="text-foreground font-semibold">{completedCount}</span>/365 días
-          </span>
-          <span>
-            <span className="text-foreground font-semibold">{percentage}%</span> completado
-          </span>
-          <span>
-            <span className="text-foreground font-semibold">{streak}</span> días seguidos
-          </span>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            <span>
+              <span className="text-foreground font-semibold">{completedCount}</span>/365 días
+            </span>
+            <span>
+              <span className="text-foreground font-semibold">{percentage}%</span> completado
+            </span>
+            <span>
+              <span className="text-foreground font-semibold">{streak}</span> días seguidos
+            </span>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -218,7 +272,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
           <div className="text-center py-12">Cargando calendario...</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {allMonths.map((monthDate) => {
+            {filteredMonths.map((monthDate) => {
               const monthDays = getMonthDays(monthDate);
               const monthName = getMonthName(monthDate);
               
@@ -243,22 +297,23 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                       }
 
                       return (
-                        <div
+                        <button
                           key={date.toISOString()}
+                          onClick={() => handleDayClick(date)}
                           className={`
                             aspect-square flex items-center justify-center text-xs rounded
                             ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
                             ${dayNote ? "relative" : ""}
-                            transition-all
+                            transition-all hover:opacity-80 cursor-pointer
                           `}
-                          title={dayNote ? `${format(date, "dd/MM/yyyy")}\n${dayNote}` : format(date, "dd/MM/yyyy")}
+                          title={format(date, "dd/MM/yyyy")}
                         >
                           {dayNum}
                           {dayNote && (
-                            <span className="absolute top-0 right-0 w-1 h-1 bg-primary rounded-full"></span>
+                            <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full"></span>
                           )}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -295,6 +350,36 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
             </Button>
             <Button onClick={handleCompleteToday}>
               Sí, completé mis rutinas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedDayDialog} onOpenChange={setSelectedDayDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDayInfo && format(selectedDayInfo.date, "dd/MM/yyyy")}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedDayInfo?.completed ? "✓ Día completado" : "✗ Día no completado"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedDayInfo?.note ? (
+              <div className="space-y-2">
+                <Label>Nota del día:</Label>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm">{selectedDayInfo.note}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No hay notas para este día.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSelectedDayDialog(false)}>
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>
