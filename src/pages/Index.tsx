@@ -13,8 +13,6 @@ const Index = () => {
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Kaizen365
           </h1>
-          {/* // tagline agregado */}
-          <p className="text-sm text-gray-400 mt-2 text-center">– Póngase a chambiar –</p>
           <p className="text-xl text-muted-foreground mb-8">
             Construye consistencia, rastrea tus hábitos diarios y alcanza tus metas
           </p>
