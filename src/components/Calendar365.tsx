@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay } from "date-fns";
-import { es } from "date-fns/locale";
+import { es } from "date-fns/locale/es";
 
 interface DayStatus {
   date: string;
