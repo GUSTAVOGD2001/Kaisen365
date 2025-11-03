@@ -278,8 +278,8 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
               
               return (
                 <div key={monthDate.toISOString()} className="border border-border rounded-lg p-3">
-                  <h3 className="text-sm font-semibold mb-2">{monthName}</h3>
-                  <div className="grid grid-cols-7 gap-1">
+                  <h3 className="text-sm font-semibold mb-3 text-center">{monthName}</h3>
+                  <div className="grid grid-cols-7 gap-2 justify-items-center">
                     {monthDays.map((date) => {
                       const completed = isDayCompleted(date);
                       const today = isToday(date);
@@ -301,17 +301,17 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                           key={date.toISOString()}
                           onClick={() => handleDayClick(date)}
                           className={`
-                            aspect-square flex items-center justify-center text-xs rounded
+                            w-7 h-7 flex items-center justify-center text-[10px] rounded-full
                             ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
                             ${dayNote ? "relative" : ""}
-                            transition-all hover:opacity-80 cursor-pointer
+                            transition-all hover:opacity-80 hover:scale-110 cursor-pointer
                           `}
                           title={format(date, "dd/MM/yyyy")}
                         >
                           {dayNum}
                           {dayNote && (
-                            <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full"></span>
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-primary rounded-full"></span>
                           )}
                         </button>
                       );
