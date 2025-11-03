@@ -48,7 +48,7 @@ const RoutineList = ({ userId }: RoutineListProps) => {
       setRoutines(data || []);
     } catch (error: any) {
       toast({
-        title: "Error loading routines",
+        title: "Error al cargar las rutinas",
         description: error.message,
         variant: "destructive",
       });
@@ -69,7 +69,7 @@ const RoutineList = ({ userId }: RoutineListProps) => {
           .eq("id", editingRoutine.id);
 
         if (error) throw error;
-        toast({ title: "Routine updated successfully" });
+        toast({ title: "Rutina actualizada correctamente" });
       } else {
         // Create new routine
         const maxOrder = routines.length > 0 ? Math.max(...routines.map((r) => r.order_index)) : -1;
@@ -81,7 +81,7 @@ const RoutineList = ({ userId }: RoutineListProps) => {
         });
 
         if (error) throw error;
-        toast({ title: "Routine created successfully" });
+        toast({ title: "Rutina creada correctamente" });
       }
 
       fetchRoutines();
@@ -89,7 +89,7 @@ const RoutineList = ({ userId }: RoutineListProps) => {
       setDialogOpen(false);
     } catch (error: any) {
       toast({
-        title: "Error saving routine",
+        title: "Error al guardar la rutina",
         description: error.message,
         variant: "destructive",
       });
@@ -100,11 +100,11 @@ const RoutineList = ({ userId }: RoutineListProps) => {
     try {
       const { error } = await supabase.from("routines").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Routine deleted successfully" });
+      toast({ title: "Rutina eliminada correctamente" });
       fetchRoutines();
     } catch (error: any) {
       toast({
-        title: "Error deleting routine",
+        title: "Error al eliminar la rutina",
         description: error.message,
         variant: "destructive",
       });
@@ -128,7 +128,7 @@ const RoutineList = ({ userId }: RoutineListProps) => {
       fetchRoutines();
     } catch (error: any) {
       toast({
-        title: "Error reordering routines",
+        title: "Error al reordenar las rutinas",
         description: error.message,
         variant: "destructive",
       });
@@ -157,41 +157,41 @@ const RoutineList = ({ userId }: RoutineListProps) => {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>My Routines</CardTitle>
+          <CardTitle>Mis Rutinas</CardTitle>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" onClick={openCreateDialog}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Routine
+                Agregar Rutina
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingRoutine ? "Edit Routine" : "New Routine"}</DialogTitle>
+                <DialogTitle>{editingRoutine ? "Editar Rutina" : "Nueva Rutina"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Título</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Morning meditation"
+                    placeholder="Meditación matutina"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Descripción</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="10 minutes of mindfulness..."
+                    placeholder="10 minutos de meditación consciente..."
                     rows={3}
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  {editingRoutine ? "Update" : "Create"} Routine
+                  {editingRoutine ? "Actualizar" : "Crear"} Rutina
                 </Button>
               </form>
             </DialogContent>
@@ -200,10 +200,10 @@ const RoutineList = ({ userId }: RoutineListProps) => {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-8">Loading routines...</div>
+          <div className="text-center py-8">Cargando rutinas...</div>
         ) : routines.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No routines yet. Create your first routine to get started!
+            No hay rutinas aún. ¡Crea tu primera rutina para comenzar!
           </div>
         ) : (
           <div className="space-y-2">

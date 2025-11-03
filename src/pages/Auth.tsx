@@ -45,14 +45,14 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in.",
+        title: "¡Bienvenido de nuevo!",
+        description: "Has iniciado sesión correctamente.",
       });
       
       navigate("/app");
     } catch (error: any) {
       toast({
-        title: "Login failed",
+        title: "Error al iniciar sesión",
         description: error.message,
         variant: "destructive",
       });
@@ -80,15 +80,15 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "Account created!",
-        description: "You can now log in with your credentials.",
+        title: "¡Cuenta creada!",
+        description: "Ya puedes iniciar sesión con tus credenciales.",
       });
       
       // Auto-login after signup (since auto-confirm is enabled)
       navigate("/app");
     } catch (error: any) {
       toast({
-        title: "Signup failed",
+        title: "Error al registrarse",
         description: error.message,
         variant: "destructive",
       });
@@ -102,30 +102,30 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">Habit365</CardTitle>
-          <CardDescription>Track your daily habits, build consistency</CardDescription>
+          <CardDescription>Rastrea tus hábitos diarios, construye consistencia</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+              <TabsTrigger value="signup">Registrarse</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">Correo electrónico</Label>
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="tu@ejemplo.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <Label htmlFor="login-password">Contraseña</Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -138,10 +138,10 @@ const Auth = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      Iniciando sesión...
                     </>
                   ) : (
-                    "Log In"
+                    "Iniciar Sesión"
                   )}
                 </Button>
               </form>
@@ -150,28 +150,28 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">Correo electrónico</Label>
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="tu@ejemplo.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-username">Username</Label>
+                  <Label htmlFor="signup-username">Nombre de usuario</Label>
                   <Input
                     id="signup-username"
                     type="text"
-                    placeholder="johndoe"
+                    placeholder="juanperez"
                     value={signupUsername}
                     onChange={(e) => setSignupUsername(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">Contraseña</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -184,10 +184,10 @@ const Auth = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
+                      Creando cuenta...
                     </>
                   ) : (
-                    "Create Account"
+                    "Crear Cuenta"
                   )}
                 </Button>
               </form>

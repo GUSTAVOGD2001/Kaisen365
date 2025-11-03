@@ -55,7 +55,7 @@ const GoalsList = ({ userId }: GoalsListProps) => {
       setGoals((data || []) as Goal[]);
     } catch (error: any) {
       toast({
-        title: "Error loading goals",
+        title: "Error al cargar las metas",
         description: error.message,
         variant: "destructive",
       });
@@ -81,7 +81,7 @@ const GoalsList = ({ userId }: GoalsListProps) => {
           .eq("id", editingGoal.id);
 
         if (error) throw error;
-        toast({ title: "Goal updated successfully" });
+        toast({ title: "Meta actualizada correctamente" });
       } else {
         // Create new goal
         const { error } = await supabase.from("goals").insert({
@@ -93,7 +93,7 @@ const GoalsList = ({ userId }: GoalsListProps) => {
         });
 
         if (error) throw error;
-        toast({ title: "Goal created successfully" });
+        toast({ title: "Meta creada correctamente" });
       }
 
       fetchGoals();
@@ -101,7 +101,7 @@ const GoalsList = ({ userId }: GoalsListProps) => {
       setDialogOpen(false);
     } catch (error: any) {
       toast({
-        title: "Error saving goal",
+        title: "Error al guardar la meta",
         description: error.message,
         variant: "destructive",
       });
@@ -112,11 +112,11 @@ const GoalsList = ({ userId }: GoalsListProps) => {
     try {
       const { error } = await supabase.from("goals").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Goal deleted successfully" });
+      toast({ title: "Meta eliminada correctamente" });
       fetchGoals();
     } catch (error: any) {
       toast({
-        title: "Error deleting goal",
+        title: "Error al eliminar la meta",
         description: error.message,
         variant: "destructive",
       });
@@ -156,45 +156,56 @@ const GoalsList = ({ userId }: GoalsListProps) => {
     }
   };
 
+  const translateStatus = (status: Goal["status"]) => {
+    switch (status) {
+      case "Completed":
+        return "Completada";
+      case "In Progress":
+        return "En Progreso";
+      case "Pending":
+        return "Pendiente";
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>My Goals</CardTitle>
+          <CardTitle>Mis Metas</CardTitle>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" onClick={openCreateDialog}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Goal
+                Agregar Meta
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingGoal ? "Edit Goal" : "New Goal"}</DialogTitle>
+                <DialogTitle>{editingGoal ? "Editar Meta" : "Nueva Meta"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">Título</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Run a marathon"
+                    placeholder="Correr un maratón"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Descripción</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Complete a full 42km marathon..."
+                    placeholder="Completar un maratón completo de 42km..."
                     rows={3}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="target-date">Target Date</Label>
+                  <Label htmlFor="target-date">Fecha Objetivo</Label>
                   <Input
                     id="target-date"
                     type="date"
@@ -203,20 +214,20 @@ const GoalsList = ({ userId }: GoalsListProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status">Estado</Label>
                   <Select value={status} onValueChange={(v) => setStatus(v as Goal["status"])}>
                     <SelectTrigger id="status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Pending">Pendiente</SelectItem>
+                      <SelectItem value="In Progress">En Progreso</SelectItem>
+                      <SelectItem value="Completed">Completada</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Button type="submit" className="w-full">
-                  {editingGoal ? "Update" : "Create"} Goal
+                  {editingGoal ? "Actualizar" : "Crear"} Meta
                 </Button>
               </form>
             </DialogContent>
@@ -225,21 +236,21 @@ const GoalsList = ({ userId }: GoalsListProps) => {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-8">Loading goals...</div>
+          <div className="text-center py-8">Cargando metas...</div>
         ) : goals.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No goals yet. Set your first goal to get started!
+            No hay metas aún. ¡Establece tu primera meta para comenzar!
           </div>
         ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead className="hidden md:table-cell">Description</TableHead>
-                  <TableHead>Target Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                  <TableHead>Fecha Objetivo</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -250,10 +261,10 @@ const GoalsList = ({ userId }: GoalsListProps) => {
                       {goal.description || "-"}
                     </TableCell>
                     <TableCell>
-                      {goal.target_date ? format(new Date(goal.target_date), "MMM d, yyyy") : "-"}
+                      {goal.target_date ? format(new Date(goal.target_date), "d 'de' MMM, yyyy", { locale: require("date-fns/locale/es") }) : "-"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusVariant(goal.status)}>{goal.status}</Badge>
+                      <Badge variant={getStatusVariant(goal.status)}>{translateStatus(goal.status)}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

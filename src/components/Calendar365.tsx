@@ -45,7 +45,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       setDayStatuses(data || []);
     } catch (error: any) {
       toast({
-        title: "Error loading calendar",
+        title: "Error al cargar el calendario",
         description: error.message,
         variant: "destructive",
       });
@@ -76,12 +76,12 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       });
 
       toast({
-        title: newCompleted ? "Day completed!" : "Day unmarked",
-        description: format(date, "MMMM d, yyyy"),
+        title: newCompleted ? "¡Día completado!" : "Día desmarcado",
+        description: format(date, "d 'de' MMMM, yyyy", { locale: require("date-fns/locale/es") }),
       });
     } catch (error: any) {
       toast({
-        title: "Error updating day",
+        title: "Error al actualizar el día",
         description: error.message,
         variant: "destructive",
       });
@@ -114,7 +114,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       });
     }
     fetchDayStatuses();
-    toast({ title: "Week marked as complete!" });
+    toast({ title: "¡Semana marcada como completa!" });
   };
 
   const clearWeek = async () => {
@@ -128,7 +128,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       });
     }
     fetchDayStatuses();
-    toast({ title: "Week cleared!" });
+    toast({ title: "¡Semana limpiada!" });
   };
 
   const completedCount = dayStatuses.filter((s) => s.completed).length;
@@ -169,7 +169,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     <Card>
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle>365-Day Calendar</CardTitle>
+          <CardTitle>Calendario de 365 Días</CardTitle>
           <div className="flex items-center gap-4">
             <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
               <SelectTrigger className="w-32">
@@ -187,31 +187,31 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
         </div>
         <div className="flex gap-6 text-sm text-muted-foreground mt-4">
           <span>
-            <span className="text-foreground font-semibold">{completedCount}</span>/365 days
+            <span className="text-foreground font-semibold">{completedCount}</span>/365 días
           </span>
           <span>
-            <span className="text-foreground font-semibold">{percentage}%</span> complete
+            <span className="text-foreground font-semibold">{percentage}%</span> completado
           </span>
           <span>
-            <span className="text-foreground font-semibold">{streak}</span> day streak
+            <span className="text-foreground font-semibold">{streak}</span> días seguidos
           </span>
         </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2 mb-4">
           <Button size="sm" onClick={markToday}>
-            Mark Today
+            Marcar Hoy
           </Button>
           <Button size="sm" variant="secondary" onClick={markWeek}>
-            Mark Week
+            Marcar Semana
           </Button>
           <Button size="sm" variant="secondary" onClick={clearWeek}>
-            Clear Week
+            Limpiar Semana
           </Button>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading calendar...</div>
+          <div className="text-center py-12">Cargando calendario...</div>
         ) : (
           <TooltipProvider>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(20px,1fr))] gap-1.5">
@@ -233,9 +233,9 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{format(date, "MMMM d, yyyy")}</p>
+                      <p>{format(date, "d 'de' MMMM, yyyy", { locale: require("date-fns/locale/es") })}</p>
                       <p className="text-xs text-muted-foreground">
-                        {completed ? "Completed" : "Not completed"}
+                        {completed ? "Completado" : "No completado"}
                       </p>
                     </TooltipContent>
                   </Tooltip>

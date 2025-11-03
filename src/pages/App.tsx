@@ -40,8 +40,8 @@ const AppPage = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
-      title: "Logged out",
-      description: "You've been successfully logged out.",
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión correctamente.",
     });
     navigate("/auth");
   };
@@ -51,7 +51,7 @@ const AppPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ const AppPage = () => {
           <h1 className="text-2xl font-bold">Habit365</h1>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            Cerrar Sesión
           </Button>
         </div>
       </header>
@@ -76,9 +76,9 @@ const AppPage = () => {
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="calendar" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="routines">Routines</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="calendar">Calendario</TabsTrigger>
+            <TabsTrigger value="routines">Rutinas</TabsTrigger>
+            <TabsTrigger value="goals">Metas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="calendar">
