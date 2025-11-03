@@ -1,3 +1,9 @@
+# Envs y build
+.env
+.env.*
+!.env.example
+dist
+
 # Logs
 logs
 *.log
@@ -8,7 +14,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
 dist-ssr
 *.local
 
