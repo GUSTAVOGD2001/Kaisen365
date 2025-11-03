@@ -15,6 +15,12 @@ interface DayStatus {
   note: string | null;
 }
 
+interface Goal {
+  id: number;
+  target_date: string | null;
+  title: string;
+}
+
 interface Calendar365Props {
   userId: string;
 }
@@ -23,12 +29,13 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dayStatuses, setDayStatuses] = useState<DayStatus[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [viewFilter, setViewFilter] = useState<"all" | "current" | "remaining">("all");
   const [selectedDayDialog, setSelectedDayDialog] = useState(false);
-  const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: Date; note: string | null; completed: boolean } | null>(null);
+  const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: Date; note: string | null; completed: boolean; goals?: Goal[] } | null>(null);
   const { toast } = useToast();
 
   const yearStart = startOfYear(new Date(selectedYear, 0, 1));
@@ -37,6 +44,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
 
   useEffect(() => {
     fetchDayStatuses();
+    fetchGoals();
   }, [selectedYear, userId]);
 
   const fetchDayStatuses = async () => {
@@ -59,6 +67,23 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("goals")
+        .select("id, target_date, title")
+        .eq("user_id", userId)
+        .not("target_date", "is", null)
+        .gte("target_date", format(yearStart, "yyyy-MM-dd"))
+        .lte("target_date", format(yearEnd, "yyyy-MM-dd"));
+
+      if (error) throw error;
+      setGoals(data || []);
+    } catch (error: any) {
+      console.error("Error al cargar metas:", error);
     }
   };
 
@@ -151,6 +176,11 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     return dayStatuses.find((s) => s.date === dateStr)?.note;
   };
 
+  const getDayGoals = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return goals.filter((g) => g.target_date === dateStr);
+  };
+
   const getMonthDays = (monthDate: Date) => {
     const start = startOfMonth(monthDate);
     const end = endOfMonth(monthDate);
@@ -193,11 +223,13 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const handleDayClick = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const dayData = dayStatuses.find((s) => s.date === dateStr);
+    const dayGoals = getDayGoals(date);
     
     setSelectedDayInfo({
       date,
       note: dayData?.note || null,
       completed: dayData?.completed || false,
+      goals: dayGoals.length > 0 ? dayGoals : undefined,
     });
     setSelectedDayDialog(true);
   };
@@ -285,6 +317,8 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                       const today = isToday(date);
                       const isPast = isBefore(startOfDay(date), startOfDay(new Date())) && !today;
                       const dayNote = getDayNote(date);
+                      const dayGoals = getDayGoals(date);
+                      const hasGoal = dayGoals.length > 0;
                       const dayNum = format(date, "d");
 
                       // Determinar color de fondo
@@ -304,7 +338,8 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                             aspect-square flex items-center justify-center text-xs rounded
                             ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
-                            ${dayNote ? "relative" : ""}
+                            ${hasGoal ? "ring-2 ring-yellow-500" : ""}
+                            ${dayNote || hasGoal ? "relative" : ""}
                             transition-all hover:opacity-80 cursor-pointer
                           `}
                           title={format(date, "dd/MM/yyyy")}
@@ -312,6 +347,9 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                           {dayNum}
                           {dayNote && (
                             <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full"></span>
+                          )}
+                          {hasGoal && (
+                            <span className="absolute bottom-0 left-0 w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
                           )}
                         </button>
                       );
@@ -365,7 +403,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
               {selectedDayInfo?.completed ? "✓ Día completado" : "✗ Día no completado"}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             {selectedDayInfo?.note ? (
               <div className="space-y-2">
                 <Label>Nota del día:</Label>
@@ -375,6 +413,19 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No hay notas para este día.</p>
+            )}
+            
+            {selectedDayInfo?.goals && selectedDayInfo.goals.length > 0 && (
+              <div className="space-y-2">
+                <Label>🎯 Metas con fecha objetivo este día:</Label>
+                <div className="space-y-2">
+                  {selectedDayInfo.goals.map((goal) => (
+                    <div key={goal.id} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <p className="text-sm font-medium">{goal.title}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           <DialogFooter>

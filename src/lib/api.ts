@@ -32,19 +32,19 @@ export async function apiReq(path: string, opts: RequestInit = {}, token?: strin
 
 export const api = {
   signUp(payload: { username: string; email: string; password: string }) {
-    return apiReq("/auth/signup", { method: "POST", body: payload });
+    return apiReq("/auth/signup", { method: "POST", body: payload as any });
   },
   login(payload: { email: string; password: string }) {
-    return apiReq("/auth/login", { method: "POST", body: payload });
+    return apiReq("/auth/login", { method: "POST", body: payload as any });
   },
   listHabits(token: string) {
     return apiReq("/habits", { method: "GET" }, token);
   },
   createHabit(token: string, body: { name: string; color?: string; icon?: string }) {
-    return apiReq("/habits", { method: "POST", body }, token);
+    return apiReq("/habits", { method: "POST", body: body as any }, token);
   },
   upsertEntry(token: string, body: { habit_id: number; entry_date: string; value?: boolean; note?: string }) {
-    return apiReq("/entries", { method: "POST", body }, token);
+    return apiReq("/entries", { method: "POST", body: body as any }, token);
   },
   currentStreak(token: string, habitId: number) {
     return apiReq(`/habits/${habitId}/streak`, { method: "GET" }, token);

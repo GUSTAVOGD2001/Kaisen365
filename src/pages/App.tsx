@@ -11,6 +11,19 @@ import RoutineList from "@/components/RoutineList";
 import GoalsList from "@/components/GoalsList";
 import Footer from "@/components/Footer";
 
+const motivationalPhrases = [
+  "Bienvenido de vuelta. La disciplina no negocia.",
+  "Un día más, un día menos.",
+  "No excuses. Execute.",
+  "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+  "La diferencia entre el ordinario y el extraordinario es ese pequeño extra.",
+  "Tu única competencia es quien fuiste ayer.",
+  "No se trata de ser perfecto, se trata de ser mejor.",
+  "El dolor que sientes hoy será la fuerza que sientes mañana.",
+  "Los sueños no funcionan a menos que tú lo hagas.",
+  "Cada día es una nueva oportunidad para mejorar.",
+];
+
 const AppPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,6 +37,18 @@ const AppPage = () => {
       if (!session) {
         navigate("/auth");
       }
+      
+      // Show motivational phrase on login
+      if (event === "SIGNED_IN" && session) {
+        const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+        setTimeout(() => {
+          toast({
+            title: "¡Bienvenido de vuelta!",
+            description: randomPhrase,
+            duration: 5000,
+          });
+        }, 500);
+      }
     });
 
     // Check initial session
@@ -36,7 +61,7 @@ const AppPage = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
