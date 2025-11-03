@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import Calendar365 from "@/components/Calendar365";
 import RoutineList from "@/components/RoutineList";
 import GoalsList from "@/components/GoalsList";
+import Footer from "@/components/Footer";
 
 const AppPage = () => {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ const AppPage = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
 };

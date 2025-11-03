@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Target, List } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const Index = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
