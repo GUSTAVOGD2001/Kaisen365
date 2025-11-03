@@ -3,13 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay } from "date-fns";
+import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay, startOfMonth, endOfMonth, eachMonthOfInterval, isToday } from "date-fns";
 
 interface DayStatus {
   date: string;
   completed: boolean;
+  note: string | null;
 }
 
 interface Calendar365Props {
@@ -21,11 +24,13 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [dayStatuses, setDayStatuses] = useState<DayStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
   const { toast } = useToast();
 
   const yearStart = startOfYear(new Date(selectedYear, 0, 1));
   const yearEnd = endOfYear(new Date(selectedYear, 0, 1));
-  const allDaysInYear = eachDayOfInterval({ start: yearStart, end: yearEnd });
+  const allMonths = eachMonthOfInterval({ start: yearStart, end: yearEnd });
 
   useEffect(() => {
     fetchDayStatuses();
@@ -36,7 +41,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     try {
       const { data, error } = await supabase
         .from("day_status")
-        .select("date, completed")
+        .select("date, completed, note")
         .eq("user_id", userId)
         .gte("date", format(yearStart, "yyyy-MM-dd"))
         .lte("date", format(yearEnd, "yyyy-MM-dd"));
@@ -54,10 +59,9 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     }
   };
 
-  const toggleDay = async (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
-    const existingStatus = dayStatuses.find((s) => s.date === dateStr);
-    const newCompleted = !existingStatus?.completed;
+  const handleCompleteToday = async () => {
+    const today = new Date();
+    const dateStr = format(today, "yyyy-MM-dd");
 
     try {
       const { error } = await supabase
@@ -65,76 +69,50 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
         .upsert({
           user_id: userId,
           date: dateStr,
-          completed: newCompleted,
+          completed: true,
+          note: noteText || null,
         });
 
       if (error) throw error;
 
       setDayStatuses((prev) => {
         const filtered = prev.filter((s) => s.date !== dateStr);
-        return [...filtered, { date: dateStr, completed: newCompleted }];
+        return [...filtered, { date: dateStr, completed: true, note: noteText || null }];
       });
 
       toast({
-        title: newCompleted ? "¡Día completado!" : "Día desmarcado",
-        description: format(date, "dd/MM/yyyy"),
+        title: "¡Excelente trabajo!",
+        description: "Has completado todas tus rutinas del día de hoy.",
       });
+
+      setDialogOpen(false);
+      setNoteText("");
     } catch (error: any) {
       toast({
-        title: "Error al actualizar el día",
+        title: "Error al completar el día",
         description: error.message,
         variant: "destructive",
       });
     }
   };
 
-  const markToday = () => {
-    toggleDay(new Date());
-  };
-
-  const getWeekDays = (fromToday: boolean = true) => {
+  const openCompleteDialog = () => {
     const today = new Date();
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + (fromToday ? i : i - 6));
-      days.push(date);
+    const dateStr = format(today, "yyyy-MM-dd");
+    const existingStatus = dayStatuses.find((s) => s.date === dateStr);
+    
+    if (existingStatus) {
+      setNoteText(existingStatus.note || "");
+    } else {
+      setNoteText("");
     }
-    return days;
-  };
-
-  const markWeek = async () => {
-    const weekDays = getWeekDays(true);
-    for (const date of weekDays) {
-      const dateStr = format(date, "yyyy-MM-dd");
-      await supabase.from("day_status").upsert({
-        user_id: userId,
-        date: dateStr,
-        completed: true,
-      });
-    }
-    fetchDayStatuses();
-    toast({ title: "¡Semana marcada como completa!" });
-  };
-
-  const clearWeek = async () => {
-    const weekDays = getWeekDays(false);
-    for (const date of weekDays) {
-      const dateStr = format(date, "yyyy-MM-dd");
-      await supabase.from("day_status").upsert({
-        user_id: userId,
-        date: dateStr,
-        completed: false,
-      });
-    }
-    fetchDayStatuses();
-    toast({ title: "¡Semana limpiada!" });
+    
+    setDialogOpen(true);
   };
 
   const completedCount = dayStatuses.filter((s) => s.completed).length;
   const percentage = ((completedCount / 365) * 100).toFixed(1);
 
-  // Calculate streak
   const calculateStreak = () => {
     const sorted = [...dayStatuses]
       .filter((s) => s.completed)
@@ -164,6 +142,28 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return dayStatuses.find((s) => s.date === dateStr && s.completed);
   };
+
+  const getDayNote = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return dayStatuses.find((s) => s.date === dateStr)?.note;
+  };
+
+  const getMonthDays = (monthDate: Date) => {
+    const start = startOfMonth(monthDate);
+    const end = endOfMonth(monthDate);
+    return eachDayOfInterval({ start, end });
+  };
+
+  const getMonthName = (monthDate: Date) => {
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    return monthNames[monthDate.getMonth()];
+  };
+
+  const todayStatus = dayStatuses.find((s) => s.date === format(new Date(), "yyyy-MM-dd"));
+  const isTodayCompleted = todayStatus?.completed || false;
 
   return (
     <Card>
@@ -198,53 +198,97 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button size="sm" onClick={markToday}>
-            Marcar Hoy
+        <div className="mb-6">
+          <Button 
+            size="lg" 
+            onClick={openCompleteDialog}
+            disabled={isTodayCompleted}
+            className="w-full md:w-auto"
+          >
+            {isTodayCompleted ? "✓ Día completado" : "Completar día de hoy"}
           </Button>
-          <Button size="sm" variant="secondary" onClick={markWeek}>
-            Marcar Semana
-          </Button>
-          <Button size="sm" variant="secondary" onClick={clearWeek}>
-            Limpiar Semana
-          </Button>
+          {isTodayCompleted && todayStatus?.note && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Nota: {todayStatus.note}
+            </p>
+          )}
         </div>
 
         {loading ? (
           <div className="text-center py-12">Cargando calendario...</div>
         ) : (
-          <TooltipProvider>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(20px,1fr))] gap-1.5">
-              {allDaysInYear.map((date) => {
-                const completed = isDayCompleted(date);
-                const isToday = isSameDay(date, new Date());
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {allMonths.map((monthDate) => {
+              const monthDays = getMonthDays(monthDate);
+              const monthName = getMonthName(monthDate);
+              
+              return (
+                <div key={monthDate.toISOString()} className="border border-border rounded-lg p-3">
+                  <h3 className="text-sm font-semibold mb-2">{monthName}</h3>
+                  <div className="grid grid-cols-7 gap-1">
+                    {monthDays.map((date) => {
+                      const completed = isDayCompleted(date);
+                      const today = isToday(date);
+                      const dayNote = getDayNote(date);
+                      const dayNum = format(date, "d");
 
-                return (
-                  <Tooltip key={date.toISOString()}>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => toggleDay(date)}
-                        className={`
-                          aspect-square rounded-full transition-all hover:scale-110
-                          ${completed ? "bg-success" : "bg-muted"}
-                          ${isToday ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}
-                        `}
-                        aria-label={format(date, "MMMM d, yyyy")}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{format(date, "dd/MM/yyyy")}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {completed ? "Completado" : "No completado"}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
-          </TooltipProvider>
+                      return (
+                        <div
+                          key={date.toISOString()}
+                          className={`
+                            aspect-square flex items-center justify-center text-xs rounded
+                            ${completed ? "bg-success text-success-foreground font-semibold" : "bg-muted text-muted-foreground"}
+                            ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
+                            ${dayNote ? "relative" : ""}
+                            transition-all
+                          `}
+                          title={dayNote ? `${format(date, "dd/MM/yyyy")}\n${dayNote}` : format(date, "dd/MM/yyyy")}
+                        >
+                          {dayNum}
+                          {dayNote && (
+                            <span className="absolute top-0 right-0 w-1 h-1 bg-primary rounded-full"></span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </CardContent>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Completaste todas tus rutinas hoy?</DialogTitle>
+            <DialogDescription>
+              Marca este día como completado y opcionalmente agrega un comentario sobre tu progreso.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="note">Comentario (opcional)</Label>
+              <Textarea
+                id="note"
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Escribe cómo te fue hoy, qué aprendiste, o cualquier reflexión..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCompleteToday}>
+              Sí, completé mis rutinas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
