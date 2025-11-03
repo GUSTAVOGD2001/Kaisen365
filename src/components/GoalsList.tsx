@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 interface Goal {
   id: number;
@@ -262,7 +261,7 @@ const GoalsList = ({ userId }: GoalsListProps) => {
                       {goal.description || "-"}
                     </TableCell>
                     <TableCell>
-                      {goal.target_date ? format(new Date(goal.target_date), "d 'de' MMM, yyyy", { locale: es }) : "-"}
+                      {goal.target_date ? format(new Date(goal.target_date), "dd/MM/yyyy") : "-"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(goal.status)}>{translateStatus(goal.status)}</Badge>
