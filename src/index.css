@@ -42,6 +42,10 @@ All colors MUST be HSL.
     --success: 142 76% 45%;
     --success-foreground: 0 0% 4%;
 
+    /* Goal highlight colors */
+    --goal: 48 96% 53%;
+    --goal-foreground: 0 0% 4%;
+
     /* Hover states */
     --hover: 0 0% 12%;
   }

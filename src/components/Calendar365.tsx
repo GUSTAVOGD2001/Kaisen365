@@ -338,7 +338,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                             aspect-square flex items-center justify-center text-xs rounded
                             ${bgColor}
                             ${today ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}
-                            ${hasGoal ? "ring-2 ring-yellow-500" : ""}
+                            ${hasGoal ? "ring-2 ring-goal" : ""}
                             ${dayNote || hasGoal ? "relative" : ""}
                             transition-all hover:opacity-80 cursor-pointer
                           `}
@@ -349,7 +349,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                             <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full"></span>
                           )}
                           {hasGoal && (
-                            <span className="absolute bottom-0 left-0 w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                            <span className="absolute bottom-0 left-0 w-1.5 h-1.5 bg-goal rounded-full"></span>
                           )}
                         </button>
                       );
@@ -420,7 +420,7 @@ const Calendar365 = ({ userId }: Calendar365Props) => {
                 <Label>🎯 Metas con fecha objetivo este día:</Label>
                 <div className="space-y-2">
                   {selectedDayInfo.goals.map((goal) => (
-                    <div key={goal.id} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <div key={goal.id} className="p-3 bg-goal/10 border border-goal/30 rounded-lg">
                       <p className="text-sm font-medium">{goal.title}</p>
                     </div>
                   ))}
