@@ -1,11 +1,13 @@
-const API = import.meta.env.VITE_API_URL as string;
+export const API = import.meta.env.VITE_API_URL as string;
 
-async function req(path: string, opts: RequestInit = {}, token?: string) {
-  const headers = new Headers(opts.headers ?? {});
-  headers.set("Content-Type", "application/json");
+export async function apiReq(path: string, opts: RequestInit = {}, token?: string) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((opts.headers || {}) as Record<string, string>),
+  };
 
   if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+    headers.Authorization = `Bearer ${token}`;
   }
 
   let body = opts.body;
@@ -13,27 +15,16 @@ async function req(path: string, opts: RequestInit = {}, token?: string) {
     body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API}${path}`, {
+  const res = await fetch(`${API}${path}`, {
     ...opts,
     headers,
     body,
   });
 
-  const text = await response.text();
-  let data: any = undefined;
+  const data = await res.json().catch(() => ({}));
 
-  if (text) {
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = undefined;
-    }
-  }
-
-  if (!response.ok || (data && typeof data === "object" && (data as any).ok === false)) {
-    const errorMessage =
-      data && typeof data === "object" && "error" in data ? (data as any).error : `HTTP ${response.status}`;
-    throw new Error(errorMessage);
+  if (!res.ok || (data && typeof data === "object" && (data as any).ok === false)) {
+    throw new Error((data as any)?.error || `HTTP ${res.status}`);
   }
 
   return data;
@@ -41,23 +32,21 @@ async function req(path: string, opts: RequestInit = {}, token?: string) {
 
 export const api = {
   signUp(payload: { username: string; email: string; password: string }) {
-    return req("/auth/signup", { method: "POST", body: payload });
+    return apiReq("/auth/signup", { method: "POST", body: payload });
   },
   login(payload: { email: string; password: string }) {
-    return req("/auth/login", { method: "POST", body: payload });
+    return apiReq("/auth/login", { method: "POST", body: payload });
   },
   listHabits(token: string) {
-    return req("/habits", { method: "GET" }, token);
+    return apiReq("/habits", { method: "GET" }, token);
   },
   createHabit(token: string, body: { name: string; color?: string; icon?: string }) {
-    return req("/habits", { method: "POST", body }, token);
+    return apiReq("/habits", { method: "POST", body }, token);
   },
   upsertEntry(token: string, body: { habit_id: number; entry_date: string; value?: boolean; note?: string }) {
-    return req("/entries", { method: "POST", body }, token);
+    return apiReq("/entries", { method: "POST", body }, token);
   },
   currentStreak(token: string, habitId: number) {
-    return req(`/habits/${habitId}/streak`, { method: "GET" }, token);
+    return apiReq(`/habits/${habitId}/streak`, { method: "GET" }, token);
   },
 };
-
-export { API };
